@@ -1,0 +1,6 @@
+{
+  "name": "Cricket Performance Analyzer",
+  "description": "A comprehensive Test match batting and bowling performance analysis platform for cricketers, featuring manual data logging, career trend graphs, historical record comparison, and CSV/PDF data exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

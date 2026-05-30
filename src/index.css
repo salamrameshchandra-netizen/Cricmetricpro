@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer utilities {
+  :root {
+    --bg: #030712;
+    --panel: rgba(17, 24, 39, 0.7);
+    --accent: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.3);
+    --success: #22c55e;
+    --danger: #ef4444;
+    --border: rgba(56, 189, 248, 0.15);
+  }
+
+  .immersive-bg {
+    background-color: var(--bg);
+    background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, transparent 60%), radial-gradient(circle at 100% 100%, #1e1b4b 0%, transparent 40%);
+  }
+
+  .glass-panel {
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px var(--accent-glow);
+  }
+
+  .stat-card {
+    background: linear-gradient(145deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.6));
+    border-left: 3px solid var(--accent);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+    transition: all 0.2s ease-in-out;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-outline {
+    border: 1px solid var(--border);
+    color: var(--accent);
+    background: rgba(56, 189, 248, 0.05);
+    transition: all 0.2s ease-in-out;
+  }
+  .btn-outline:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+
+  .delete-btn {
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.20);
+    background: rgba(239, 68, 68, 0.05);
+    transition: all 0.2s;
+  }
+  .delete-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.40);
+  }
+
+  /* Custom styled scrollbars for the immersive dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(17, 24, 39, 0.3);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.4);
+  }
+}
