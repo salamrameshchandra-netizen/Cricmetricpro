@@ -16,6 +16,7 @@ export interface BattingInnings {
   fours: number;
   sixes: number;
   minutes?: number;
+  dnb?: boolean;
 }
 
 export interface BowlingInnings {

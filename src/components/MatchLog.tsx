@@ -38,6 +38,7 @@ export default function MatchLog({
   const [bIsDismissed, setBIsDismissed] = useState(true);
   const [bFours, setBFours] = useState<number>(0);
   const [bSixes, setBSixes] = useState<number>(0);
+  const [bIsDNB, setBIsDNB] = useState(false);
 
   // Both innings state (Batting)
   const [bLogBothInnings, setBLogBothInnings] = useState<boolean>(false);
@@ -47,6 +48,7 @@ export default function MatchLog({
   const [bIsDismissed2, setBIsDismissed2] = useState(true);
   const [bFours2, setBFours2] = useState<number>(0);
   const [bSixes2, setBSixes2] = useState<number>(0);
+  const [bIsDNB2, setBIsDNB2] = useState(false);
 
   // Bowling Form State
   const [blMatchNum, setBlMatchNum] = useState<number>(() => {
@@ -85,13 +87,13 @@ export default function MatchLog({
       setFormError('Please fill in opponent and venue.');
       return;
     }
-    if (bRuns < 0 || bBalls < 0 || bFours < 0 || bSixes < 0) {
+    if (!bIsDNB && (bRuns < 0 || bBalls < 0 || bFours < 0 || bSixes < 0)) {
       setFormError('Scores cannot be negative.');
       return;
     }
 
     if (bLogBothInnings) {
-      if (bRuns2 < 0 || bBalls2 < 0 || bFours2 < 0 || bSixes2 < 0) {
+      if (!bIsDNB2 && (bRuns2 < 0 || bBalls2 < 0 || bFours2 < 0 || bSixes2 < 0)) {
         setFormError('Second innings scores cannot be negative.');
         return;
       }
@@ -103,11 +105,12 @@ export default function MatchLog({
           opponent: bOpponent.trim(),
           venue: bVenue.trim(),
           date: bDate,
-          runs: Number(bRuns),
-          ballsFaced: Number(bBalls),
-          isDismissed: bIsDismissed,
-          fours: Number(bFours),
-          sixes: Number(bSixes),
+          runs: bIsDNB ? 0 : Number(bRuns),
+          ballsFaced: bIsDNB ? 0 : Number(bBalls),
+          isDismissed: bIsDNB ? false : bIsDismissed,
+          fours: bIsDNB ? 0 : Number(bFours),
+          sixes: bIsDNB ? 0 : Number(bSixes),
+          dnb: bIsDNB,
         },
         {
           matchNum: Number(bMatchNum),
@@ -115,11 +118,12 @@ export default function MatchLog({
           opponent: bOpponent.trim(),
           venue: bVenue.trim(),
           date: bDate,
-          runs: Number(bRuns2),
-          ballsFaced: Number(bBalls2),
-          isDismissed: bIsDismissed2,
-          fours: Number(bFours2),
-          sixes: Number(bSixes2),
+          runs: bIsDNB2 ? 0 : Number(bRuns2),
+          ballsFaced: bIsDNB2 ? 0 : Number(bBalls2),
+          isDismissed: bIsDNB2 ? false : bIsDismissed2,
+          fours: bIsDNB2 ? 0 : Number(bFours2),
+          sixes: bIsDNB2 ? 0 : Number(bSixes2),
+          dnb: bIsDNB2,
         }
       ]);
 
@@ -129,6 +133,7 @@ export default function MatchLog({
       setBIsDismissed2(true);
       setBFours2(0);
       setBSixes2(0);
+      setBIsDNB2(false);
     } else {
       onAddBattingInnings({
         matchNum: Number(bMatchNum),
@@ -136,11 +141,12 @@ export default function MatchLog({
         opponent: bOpponent.trim(),
         venue: bVenue.trim(),
         date: bDate,
-        runs: Number(bRuns),
-        ballsFaced: Number(bBalls),
-        isDismissed: bIsDismissed,
-        fours: Number(bFours),
-        sixes: Number(bSixes),
+        runs: bIsDNB ? 0 : Number(bRuns),
+        ballsFaced: bIsDNB ? 0 : Number(bBalls),
+        isDismissed: bIsDNB ? false : bIsDismissed,
+        fours: bIsDNB ? 0 : Number(bFours),
+        sixes: bIsDNB ? 0 : Number(bSixes),
+        dnb: bIsDNB,
       });
     }
 
@@ -150,6 +156,7 @@ export default function MatchLog({
     setBIsDismissed(true);
     setBFours(0);
     setBSixes(0);
+    setBIsDNB(false);
     setFormError(null);
   };
 
@@ -313,7 +320,7 @@ export default function MatchLog({
                   {[...player.battingInnings]
                     .sort((a, b) => b.matchNum - a.matchNum || b.inningsNum - a.inningsNum)
                     .map(ing => {
-                      const sr = ing.ballsFaced > 0 ? ((ing.runs / ing.ballsFaced) * 100).toFixed(1) : '0';
+                      const sr = ing.dnb ? '-' : (ing.ballsFaced > 0 ? ((ing.runs / ing.ballsFaced) * 100).toFixed(1) : '0');
                       return (
                         <tr key={ing.id} className="hover:bg-white/5 group transition-colors">
                           <td className="py-3.5 px-2 font-mono font-bold text-slate-450">M{ing.matchNum}</td>
@@ -329,13 +336,19 @@ export default function MatchLog({
                             </div>
                           </td>
                           <td className="py-3.5 px-2 text-right font-black text-amber-400 font-mono text-sm leading-none bg-amber-500/5 rounded-sm">
-                            {ing.runs}
-                            {!ing.isDismissed && '*'}
+                            {ing.dnb ? (
+                              <span className="text-slate-500/80 font-bold text-xs uppercase">DNB</span>
+                            ) : (
+                              <>
+                                {ing.runs}
+                                {!ing.isDismissed && '*'}
+                              </>
+                            )}
                           </td>
-                          <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.ballsFaced || '-'}</td>
+                          <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.dnb ? '-' : (ing.ballsFaced || '-')}</td>
                           <td className="py-3.5 px-2 text-right font-mono text-slate-300">{sr}</td>
                           <td className="py-3.5 px-2 text-right font-mono text-slate-400">
-                            {ing.fours} / {ing.sixes}
+                            {ing.dnb ? '-' : `${ing.fours} / ${ing.sixes}`}
                           </td>
                           <td className="py-3.5 px-3 text-right">
                             <button
@@ -519,6 +532,19 @@ export default function MatchLog({
             {!bLogBothInnings ? (
               /* Single Innings Input Block */
               <div className="space-y-4 pt-1 animate-none">
+                <div className="flex items-center gap-2 py-2 px-3 bg-slate-950/40 border border-white/5 rounded-lg select-none">
+                  <input
+                    id="is-dnb-chk"
+                    type="checkbox"
+                    checked={bIsDNB}
+                    onChange={e => setBIsDNB(e.target.checked)}
+                    className="w-4 h-4 text-amber-500 border-white/10 rounded-md bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="is-dnb-chk" className="text-[10px] font-black text-amber-400 tracking-widest uppercase cursor-pointer">
+                    Did Not Bat (DNB)
+                  </label>
+                </div>
+
                 <div>
                   <label className="block text-[10px] font-black text-slate-450 uppercase mb-1 tracking-widest font-mono">Innings (1-4)</label>
                   <select
@@ -539,10 +565,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={bRuns}
+                      required={!bIsDNB}
+                      disabled={bIsDNB}
+                      value={bIsDNB ? 0 : bRuns}
                       onChange={e => setBRuns(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-amber-400 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-black font-mono tracking-wide"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-amber-400 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-black font-mono tracking-wide disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -550,10 +577,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={bBalls}
+                      required={!bIsDNB}
+                      disabled={bIsDNB}
+                      value={bIsDNB ? 0 : bBalls}
                       onChange={e => setBBalls(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -564,10 +592,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={bFours}
+                      required={!bIsDNB}
+                      disabled={bIsDNB}
+                      value={bIsDNB ? 0 : bFours}
                       onChange={e => setBFours(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -575,10 +604,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={bSixes}
+                      required={!bIsDNB}
+                      disabled={bIsDNB}
+                      value={bIsDNB ? 0 : bSixes}
                       onChange={e => setBSixes(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -587,11 +617,12 @@ export default function MatchLog({
                   <input
                     id="is-dismissed-chk"
                     type="checkbox"
-                    checked={bIsDismissed}
+                    disabled={bIsDNB}
+                    checked={bIsDNB ? false : bIsDismissed}
                     onChange={e => setBIsDismissed(e.target.checked)}
-                    className="w-4 h-4 text-amber-500 border-white/10 rounded-md bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-amber-500 border-white/10 rounded-md bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
                   />
-                  <label htmlFor="is-dismissed-chk" className="text-xs font-bold text-slate-300 tracking-wide uppercase cursor-pointer">
+                  <label htmlFor="is-dismissed-chk" className="text-xs font-bold text-slate-300 tracking-wide uppercase cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed">
                     Dismissed (Uncheck for Not Out *)
                   </label>
                 </div>
@@ -613,16 +644,30 @@ export default function MatchLog({
                     </select>
                   </div>
 
+                  <div className="flex items-center gap-1.5 select-none pb-1">
+                    <input
+                      id="is-dnb-1"
+                      type="checkbox"
+                      checked={bIsDNB}
+                      onChange={e => setBIsDNB(e.target.checked)}
+                      className="w-3.5 h-3.5 text-amber-500 border-white/10 rounded bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer"
+                    />
+                    <label htmlFor="is-dnb-1" className="text-[10px] font-bold text-amber-400 uppercase tracking-wider cursor-pointer">
+                      Did Not Bat (DNB)
+                    </label>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase">Runs</label>
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bRuns}
+                        required={!bIsDNB}
+                        disabled={bIsDNB}
+                        value={bIsDNB ? 0 : bRuns}
                         onChange={e => setBRuns(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-amber-500 font-bold font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-amber-500 font-bold font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -630,10 +675,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bBalls}
+                        required={!bIsDNB}
+                        disabled={bIsDNB}
+                        value={bIsDNB ? 0 : bBalls}
                         onChange={e => setBBalls(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -644,10 +690,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bFours}
+                        required={!bIsDNB}
+                        disabled={bIsDNB}
+                        value={bIsDNB ? 0 : bFours}
                         onChange={e => setBFours(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -655,10 +702,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bSixes}
+                        required={!bIsDNB}
+                        disabled={bIsDNB}
+                        value={bIsDNB ? 0 : bSixes}
                         onChange={e => setBSixes(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -667,11 +715,12 @@ export default function MatchLog({
                     <input
                       id="is-dismissed-1"
                       type="checkbox"
-                      checked={bIsDismissed}
+                      disabled={bIsDNB}
+                      checked={bIsDNB ? false : bIsDismissed}
                       onChange={e => setBIsDismissed(e.target.checked)}
-                      className="w-3.5 h-3.5 text-amber-500 border-white/10 rounded bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer"
+                      className="w-3.5 h-3.5 text-amber-500 border-white/10 rounded bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer disabled:opacity-40"
                     />
-                    <label htmlFor="is-dismissed-1" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider cursor-pointer">
+                    <label htmlFor="is-dismissed-1" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider cursor-pointer disabled:opacity-40">
                       Dismissed
                     </label>
                   </div>
@@ -691,16 +740,30 @@ export default function MatchLog({
                     </select>
                   </div>
 
+                  <div className="flex items-center gap-1.5 select-none pb-1">
+                    <input
+                      id="is-dnb-2"
+                      type="checkbox"
+                      checked={bIsDNB2}
+                      onChange={e => setBIsDNB2(e.target.checked)}
+                      className="w-3.5 h-3.5 text-amber-500 border-white/10 rounded bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer"
+                    />
+                    <label htmlFor="is-dnb-2" className="text-[10px] font-bold text-amber-400 uppercase tracking-wider cursor-pointer">
+                      Did Not Bat (DNB)
+                    </label>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase">Runs</label>
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bRuns2}
+                        required={!bIsDNB2}
+                        disabled={bIsDNB2}
+                        value={bIsDNB2 ? 0 : bRuns2}
                         onChange={e => setBRuns2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-amber-500 font-bold font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-amber-500 font-bold font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -708,10 +771,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bBalls2}
+                        required={!bIsDNB2}
+                        disabled={bIsDNB2}
+                        value={bIsDNB2 ? 0 : bBalls2}
                         onChange={e => setBBalls2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -722,10 +786,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bFours2}
+                        required={!bIsDNB2}
+                        disabled={bIsDNB2}
+                        value={bIsDNB2 ? 0 : bFours2}
                         onChange={e => setBFours2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -733,10 +798,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={bSixes2}
+                        required={!bIsDNB2}
+                        disabled={bIsDNB2}
+                        value={bIsDNB2 ? 0 : bSixes2}
                         onChange={e => setBSixes2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-300 font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -745,11 +811,12 @@ export default function MatchLog({
                     <input
                       id="is-dismissed-2"
                       type="checkbox"
-                      checked={bIsDismissed2}
+                      disabled={bIsDNB2}
+                      checked={bIsDNB2 ? false : bIsDismissed2}
                       onChange={e => setBIsDismissed2(e.target.checked)}
-                      className="w-3.5 h-3.5 text-amber-500 border-white/10 rounded bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer"
+                      className="w-3.5 h-3.5 text-amber-500 border-white/10 rounded bg-slate-950 accent-amber-500 focus:ring-amber-500 cursor-pointer disabled:opacity-40"
                     />
-                    <label htmlFor="is-dismissed-2" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider cursor-pointer">
+                    <label htmlFor="is-dismissed-2" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider cursor-pointer disabled:opacity-40">
                       Dismissed
                     </label>
                   </div>

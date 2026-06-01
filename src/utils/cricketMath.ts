@@ -33,9 +33,12 @@ export function ballsToOversFloat(balls: number): number {
 
 // Calculate comprehensive batting stats for a player
 export function calculateBattingStats(innings: BattingInnings[]): CareerBattingStats {
-  if (innings.length === 0) {
+  const uniqueMatches = new Set(innings.map(ing => ing.matchNum)).size;
+  const activeInnings = innings.filter(ing => !ing.dnb);
+
+  if (activeInnings.length === 0) {
     return {
-      matches: 0,
+      matches: uniqueMatches,
       innings: 0,
       notOuts: 0,
       runs: 0,
@@ -51,9 +54,6 @@ export function calculateBattingStats(innings: BattingInnings[]): CareerBattingS
     };
   }
 
-  // Count unique match sequence numbers
-  const uniqueMatches = new Set(innings.map(ing => ing.matchNum)).size;
-
   let totalRuns = 0;
   let totalBalls = 0;
   let totalMinutes = 0;
@@ -67,7 +67,7 @@ export function calculateBattingStats(innings: BattingInnings[]): CareerBattingS
   let ducks = 0;
 
   // Sort chronological for stats calculation (just to verify)
-  const sorted = [...innings].sort((a, b) => a.matchNum - b.matchNum || a.inningsNum - b.inningsNum);
+  const sorted = [...activeInnings].sort((a, b) => a.matchNum - b.matchNum || a.inningsNum - b.inningsNum);
 
   sorted.forEach(ing => {
     totalRuns += ing.runs;
@@ -236,7 +236,8 @@ export interface BowlingProgressionPoint {
 // Generate the batting career progression series (rolling metrics for the graphs)
 export function getBattingProgression(innings: BattingInnings[]): BattingProgressionPoint[] {
   // Sort chronologically
-  const sorted = [...innings].sort((a, b) => a.matchNum - b.matchNum || a.inningsNum - b.inningsNum);
+  const activeInnings = innings.filter(ing => !ing.dnb);
+  const sorted = [...activeInnings].sort((a, b) => a.matchNum - b.matchNum || a.inningsNum - b.inningsNum);
 
   let cumulativeRuns = 0;
   let cumulativeDismissals = 0;
