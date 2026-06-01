@@ -32,6 +32,7 @@ export interface BowlingInnings {
   wickets: number;
   wides?: number;
   noBalls?: number;
+  dnbd?: boolean;
 }
 
 export interface Player {

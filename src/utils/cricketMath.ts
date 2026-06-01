@@ -127,9 +127,12 @@ export function calculateBattingStats(innings: BattingInnings[]): CareerBattingS
 
 // Calculate comprehensive bowling stats for a player
 export function calculateBowlingStats(innings: BowlingInnings[]): CareerBowlingStats {
-  if (innings.length === 0) {
+  const uniqueMatches = new Set(innings.map(ing => ing.matchNum)).size;
+  const activeInnings = innings.filter(ing => !ing.dnbd);
+
+  if (activeInnings.length === 0) {
     return {
-      matches: 0,
+      matches: uniqueMatches,
       innings: 0,
       overs: "0.0",
       balls: 0,
@@ -146,8 +149,6 @@ export function calculateBowlingStats(innings: BowlingInnings[]): CareerBowlingS
     };
   }
 
-  const uniqueMatches = new Set(innings.map(ing => ing.matchNum)).size;
-
   let totalBalls = 0;
   let totalMaidens = 0;
   let totalRunsConceded = 0;
@@ -159,7 +160,7 @@ export function calculateBowlingStats(innings: BowlingInnings[]): CareerBowlingS
   // For 10-wickets in a match calculation, group by matchNum
   const wicketsPerMatch: Record<number, number> = {};
 
-  innings.forEach(ing => {
+  activeInnings.forEach(ing => {
     const balls = oversToBalls(ing.overs);
     totalBalls += balls;
     totalMaidens += ing.maidens;
@@ -192,7 +193,7 @@ export function calculateBowlingStats(innings: BowlingInnings[]): CareerBowlingS
 
   return {
     matches: uniqueMatches,
-    innings: innings.length,
+    innings: activeInnings.length,
     overs: ballsToOvers(totalBalls),
     balls: totalBalls,
     maidens: totalMaidens,
@@ -269,7 +270,8 @@ export function getBattingProgression(innings: BattingInnings[]): BattingProgres
 // Generate the bowling career progression series
 export function getBowlingProgression(innings: BowlingInnings[]): BowlingProgressionPoint[] {
   // Sort chronologically
-  const sorted = [...innings].sort((a, b) => a.matchNum - b.matchNum || a.inningsNum - b.inningsNum);
+  const activeInnings = innings.filter(ing => !ing.dnbd);
+  const sorted = [...activeInnings].sort((a, b) => a.matchNum - b.matchNum || a.inningsNum - b.inningsNum);
 
   let cumulativeWickets = 0;
   let cumulativeRunsConceded = 0;

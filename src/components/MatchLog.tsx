@@ -71,6 +71,8 @@ export default function MatchLog({
   const [blMaidens2, setBlMaidens2] = useState<number>(0);
   const [blRuns2, setBlRuns2] = useState<number>(0);
   const [blWickets2, setBlWickets2] = useState<number>(0);
+  const [blIsDNBD, setBlIsDNBD] = useState(false);
+  const [blIsDNBD2, setBlIsDNBD2] = useState(false);
 
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -167,40 +169,44 @@ export default function MatchLog({
       return;
     }
 
-    const oversFloat = parseFloat(blOvers);
-    if (isNaN(oversFloat) || oversFloat < 0) {
-      setFormError('Overs bowled must be a valid positive number.');
-      return;
-    }
+    const oversFloat = blIsDNBD ? 0 : parseFloat(blOvers);
+    if (!blIsDNBD) {
+      if (isNaN(oversFloat) || oversFloat < 0) {
+        setFormError('Overs bowled must be a valid positive number.');
+        return;
+      }
 
-    // Check fraction of overs (must be .0 through .5)
-    const fraction = Math.round((oversFloat - Math.floor(oversFloat)) * 10);
-    if (fraction >= 6) {
-      setFormError('Invalid over format. Balls portion of an over can only be 1 to 5 (e.g., 20.4). Use 21.0 for 21 overs.');
-      return;
-    }
+      // Check fraction of overs (must be .0 through .5)
+      const fraction = Math.round((oversFloat - Math.floor(oversFloat)) * 10);
+      if (fraction >= 6) {
+        setFormError('Invalid over format. Balls portion of an over can only be 1 to 5 (e.g., 20.4). Use 21.0 for 21 overs.');
+        return;
+      }
 
-    if (blMaidens < 0 || blRuns < 0 || blWickets < 0) {
-      setFormError('Bowling metrics cannot be negative.');
-      return;
+      if (blMaidens < 0 || blRuns < 0 || blWickets < 0) {
+        setFormError('Bowling metrics cannot be negative.');
+        return;
+      }
     }
 
     if (blLogBothInnings) {
-      const oversFloat2 = parseFloat(blOvers2);
-      if (isNaN(oversFloat2) || oversFloat2 < 0) {
-        setFormError('Second innings overs bowled must be a valid positive number.');
-        return;
-      }
+      const oversFloat2 = blIsDNBD2 ? 0 : parseFloat(blOvers2);
+      if (!blIsDNBD2) {
+        if (isNaN(oversFloat2) || oversFloat2 < 0) {
+          setFormError('Second innings overs bowled must be a valid positive number.');
+          return;
+        }
 
-      const fraction2 = Math.round((oversFloat2 - Math.floor(oversFloat2)) * 10);
-      if (fraction2 >= 6) {
-        setFormError('Invalid second innings over format. Balls portion of an over can only be 1 to 5 (e.g., 20.4).');
-        return;
-      }
+        const fraction2 = Math.round((oversFloat2 - Math.floor(oversFloat2)) * 10);
+        if (fraction2 >= 6) {
+          setFormError('Invalid second innings over format. Balls portion of an over can only be 1 to 5 (e.g., 20.4).');
+          return;
+        }
 
-      if (blMaidens2 < 0 || blRuns2 < 0 || blWickets2 < 0) {
-        setFormError('Second innings bowling metrics cannot be negative.');
-        return;
+        if (blMaidens2 < 0 || blRuns2 < 0 || blWickets2 < 0) {
+          setFormError('Second innings bowling metrics cannot be negative.');
+          return;
+        }
       }
 
       onAddBowlingInnings([
@@ -210,10 +216,11 @@ export default function MatchLog({
           opponent: blOpponent.trim(),
           venue: blVenue.trim(),
           date: blDate,
-          overs: oversFloat,
-          maidens: Number(blMaidens),
-          runsConceded: Number(blRuns),
-          wickets: Number(blWickets),
+          overs: blIsDNBD ? 0 : oversFloat,
+          maidens: blIsDNBD ? 0 : Number(blMaidens),
+          runsConceded: blIsDNBD ? 0 : Number(blRuns),
+          wickets: blIsDNBD ? 0 : Number(blWickets),
+          dnbd: blIsDNBD,
         },
         {
           matchNum: Number(blMatchNum),
@@ -221,10 +228,11 @@ export default function MatchLog({
           opponent: blOpponent.trim(),
           venue: blVenue.trim(),
           date: blDate,
-          overs: oversFloat2,
-          maidens: Number(blMaidens2),
-          runsConceded: Number(blRuns2),
-          wickets: Number(blWickets2),
+          overs: blIsDNBD2 ? 0 : oversFloat2,
+          maidens: blIsDNBD2 ? 0 : Number(blMaidens2),
+          runsConceded: blIsDNBD2 ? 0 : Number(blRuns2),
+          wickets: blIsDNBD2 ? 0 : Number(blWickets2),
+          dnbd: blIsDNBD2,
         }
       ]);
 
@@ -233,6 +241,7 @@ export default function MatchLog({
       setBlMaidens2(0);
       setBlRuns2(0);
       setBlWickets2(0);
+      setBlIsDNBD2(false);
     } else {
       onAddBowlingInnings({
         matchNum: Number(blMatchNum),
@@ -240,10 +249,11 @@ export default function MatchLog({
         opponent: blOpponent.trim(),
         venue: blVenue.trim(),
         date: blDate,
-        overs: oversFloat,
-        maidens: Number(blMaidens),
-        runsConceded: Number(blRuns),
-        wickets: Number(blWickets),
+        overs: blIsDNBD ? 0 : oversFloat,
+        maidens: blIsDNBD ? 0 : Number(blMaidens),
+        runsConceded: blIsDNBD ? 0 : Number(blRuns),
+        wickets: blIsDNBD ? 0 : Number(blWickets),
+        dnbd: blIsDNBD,
       });
     }
 
@@ -252,6 +262,7 @@ export default function MatchLog({
     setBlMaidens(0);
     setBlRuns(0);
     setBlWickets(0);
+    setBlIsDNBD(false);
     setFormError(null);
   };
 
@@ -409,13 +420,17 @@ export default function MatchLog({
                             <span>{ing.date}</span>
                           </div>
                         </td>
-                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.overs.toFixed(1)}</td>
-                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.maidens}</td>
-                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.runsConceded}</td>
+                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.dnbd ? '-' : ing.overs.toFixed(1)}</td>
+                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.dnbd ? '-' : ing.maidens}</td>
+                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.dnbd ? '-' : ing.runsConceded}</td>
                         <td className="py-3.5 px-2 text-right font-mono font-black text-sky-400 text-sm bg-sky-500/5 rounded-sm">
-                          {ing.wickets}w
+                          {ing.dnbd ? (
+                            <span className="text-slate-500/80 font-bold text-xs uppercase">DNBD</span>
+                          ) : (
+                            `${ing.wickets}w`
+                          )}
                         </td>
-                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{econ}</td>
+                        <td className="py-3.5 px-2 text-right font-mono text-slate-300">{ing.dnbd ? '-' : econ}</td>
                         <td className="py-3.5 px-3 text-right">
                           <button
                             type="button"
@@ -909,6 +924,19 @@ export default function MatchLog({
             {!blLogBothInnings ? (
               /* Single Innings Bowling Block */
               <div className="space-y-4 pt-1 animate-none">
+                <div className="flex items-center gap-2 py-2 px-3 bg-slate-950/40 border border-white/5 rounded-lg select-none">
+                  <input
+                    id="is-dnbd-chk"
+                    type="checkbox"
+                    checked={blIsDNBD}
+                    onChange={e => setBlIsDNBD(e.target.checked)}
+                    className="w-4 h-4 text-sky-500 border-white/10 rounded-md bg-slate-950 accent-sky-500 focus:ring-sky-500 cursor-pointer"
+                  />
+                  <label htmlFor="is-dnbd-chk" className="text-[10px] font-black text-sky-450 tracking-widest uppercase cursor-pointer">
+                    Did Not Bowl (DNBD)
+                  </label>
+                </div>
+
                 <div>
                   <label className="block text-[10px] font-black text-slate-450 uppercase mb-1 tracking-widest font-mono">Innings (1-4)</label>
                   <select
@@ -925,16 +953,17 @@ export default function MatchLog({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-450 uppercase mb-1 tracking-widest font-mono" title="Decimal, e.g. 10.3 for 10 overs and 3 balls">
+                    <label className="block text-[10px] font-black text-slate-450 uppercase mb-1 tracking-widest font-mono cursor-pointer" title="Decimal, e.g. 10.3 for 10 overs and 3 balls">
                       Overs Bowled
                     </label>
                     <input
                       type="text"
-                      required
+                      required={!blIsDNBD}
+                      disabled={blIsDNBD}
                       placeholder="e.g. 20.4"
-                      value={blOvers}
+                      value={blIsDNBD ? '0.0' : blOvers}
                       onChange={e => setBlOvers(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -942,10 +971,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={blMaidens}
+                      required={!blIsDNBD}
+                      disabled={blIsDNBD}
+                      value={blIsDNBD ? 0 : blMaidens}
                       onChange={e => setBlMaidens(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -956,10 +986,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={blRuns}
+                      required={!blIsDNBD}
+                      disabled={blIsDNBD}
+                      value={blIsDNBD ? 0 : blRuns}
                       onChange={e => setBlRuns(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -967,10 +998,11 @@ export default function MatchLog({
                     <input
                       type="number"
                       min="0"
-                      required
-                      value={blWickets}
+                      required={!blIsDNBD}
+                      disabled={blIsDNBD}
+                      value={blIsDNBD ? 0 : blWickets}
                       onChange={e => setBlWickets(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-sky-400 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-black font-mono tracking-wide"
+                      className="w-full px-3 py-2 text-sm bg-slate-950/60 border border-white/5 rounded-lg text-sky-400 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 font-black font-mono tracking-wide disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -992,15 +1024,29 @@ export default function MatchLog({
                     </select>
                   </div>
 
+                  <div className="flex items-center gap-1.5 select-none pb-1">
+                    <input
+                      id="bl-is-dnbd-1"
+                      type="checkbox"
+                      checked={blIsDNBD}
+                      onChange={e => setBlIsDNBD(e.target.checked)}
+                      className="w-3.5 h-3.5 text-sky-500 border-white/10 rounded bg-slate-950 accent-sky-500 focus:ring-sky-500 cursor-pointer"
+                    />
+                    <label htmlFor="bl-is-dnbd-1" className="text-[10px] font-bold text-sky-400 uppercase tracking-wider cursor-pointer">
+                      Did Not Bowl (DNBD)
+                    </label>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase">Overs</label>
                       <input
                         type="text"
-                        required
-                        value={blOvers}
+                        required={!blIsDNBD}
+                        disabled={blIsDNBD}
+                        value={blIsDNBD ? '0.0' : blOvers}
                         onChange={e => setBlOvers(e.target.value)}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -1008,10 +1054,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={blMaidens}
+                        required={!blIsDNBD}
+                        disabled={blIsDNBD}
+                        value={blIsDNBD ? 0 : blMaidens}
                         onChange={e => setBlMaidens(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -1022,10 +1069,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={blRuns}
+                        required={!blIsDNBD}
+                        disabled={blIsDNBD}
+                        value={blIsDNBD ? 0 : blRuns}
                         onChange={e => setBlRuns(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -1033,10 +1081,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={blWickets}
+                        required={!blIsDNBD}
+                        disabled={blIsDNBD}
+                        value={blIsDNBD ? 0 : blWickets}
                         onChange={e => setBlWickets(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-sky-400 font-bold font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-sky-400 font-bold font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -1056,15 +1105,29 @@ export default function MatchLog({
                     </select>
                   </div>
 
+                  <div className="flex items-center gap-1.5 select-none pb-1">
+                    <input
+                      id="bl-is-dnbd-2"
+                      type="checkbox"
+                      checked={blIsDNBD2}
+                      onChange={e => setBlIsDNBD2(e.target.checked)}
+                      className="w-3.5 h-3.5 text-sky-500 border-white/10 rounded bg-slate-950 accent-sky-500 focus:ring-sky-500 cursor-pointer"
+                    />
+                    <label htmlFor="bl-is-dnbd-2" className="text-[10px] font-bold text-sky-400 uppercase tracking-wider cursor-pointer">
+                      Did Not Bowl (DNBD)
+                    </label>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase">Overs</label>
                       <input
                         type="text"
-                        required
-                        value={blOvers2}
+                        required={!blIsDNBD2}
+                        disabled={blIsDNBD2}
+                        value={blIsDNBD2 ? '0.0' : blOvers2}
                         onChange={e => setBlOvers2(e.target.value)}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -1072,10 +1135,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={blMaidens2}
+                        required={!blIsDNBD2}
+                        disabled={blIsDNBD2}
+                        value={blIsDNBD2 ? 0 : blMaidens2}
                         onChange={e => setBlMaidens2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>
@@ -1086,10 +1150,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={blRuns2}
+                        required={!blIsDNBD2}
+                        disabled={blIsDNBD2}
+                        value={blIsDNBD2 ? 0 : blRuns2}
                         onChange={e => setBlRuns2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-slate-200 font-mono disabled:opacity-40"
                       />
                     </div>
                     <div>
@@ -1097,10 +1162,11 @@ export default function MatchLog({
                       <input
                         type="number"
                         min="0"
-                        required
-                        value={blWickets2}
+                        required={!blIsDNBD2}
+                        disabled={blIsDNBD2}
+                        value={blIsDNBD2 ? 0 : blWickets2}
                         onChange={e => setBlWickets2(Number(e.target.value))}
-                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-sky-400 font-bold font-mono"
+                        className="w-full px-2 py-1 text-xs bg-slate-950/80 border border-white/5 rounded text-sky-400 font-bold font-mono disabled:opacity-40"
                       />
                     </div>
                   </div>

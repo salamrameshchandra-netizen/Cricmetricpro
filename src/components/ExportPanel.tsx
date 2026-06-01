@@ -88,11 +88,11 @@ export default function ExportPanel({ player }: ExportPanelProps) {
           `"${ing.opponent.replace(/"/g, '""')}"`,
           `"${ing.venue.replace(/"/g, '""')}"`,
           ing.date,
-          ing.overs.toFixed(1),
-          ing.maidens,
-          ing.runsConceded,
-          ing.wickets,
-          econ,
+          ing.dnbd ? 'DNBD' : ing.overs.toFixed(1),
+          ing.dnbd ? 'DNBD' : ing.maidens,
+          ing.dnbd ? 'DNBD' : ing.runsConceded,
+          ing.dnbd ? 'DNBD' : ing.wickets,
+          ing.dnbd ? 'DNBD' : econ,
         ];
       });
 
@@ -428,11 +428,11 @@ export default function ExportPanel({ player }: ExportPanelProps) {
         doc.setFont('Helvetica', 'normal');
         doc.text(String(ing.inningsNum), startX + 15, currentY);
         doc.text(`${ing.opponent} (${ing.venue})`, startX + 28, currentY);
-        doc.text(ing.overs.toFixed(1), startX + 95, currentY);
-        doc.text(String(ing.maidens), startX + 115, currentY);
-        doc.text(String(ing.runsConceded), startX + 135, currentY);
+        doc.text(ing.dnbd ? 'DNBD' : ing.overs.toFixed(1), startX + 95, currentY);
+        doc.text(ing.dnbd ? 'DNBD' : String(ing.maidens), startX + 115, currentY);
+        doc.text(ing.dnbd ? 'DNBD' : String(ing.runsConceded), startX + 135, currentY);
         doc.setFont('Helvetica', 'bold');
-        doc.text(`${ing.wickets} Wkts`, startX + 155, currentY);
+        doc.text(ing.dnbd ? 'DNBD' : `${ing.wickets} Wkts`, startX + 155, currentY);
         doc.setFont('Helvetica', 'normal');
         doc.text(ing.date, startX + 172, currentY);
         currentY += 5.5;
