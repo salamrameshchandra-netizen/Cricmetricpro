@@ -43,7 +43,7 @@ export default function PlayerSelector({
       state: stateVal.trim(),
       role,
       battingStyle,
-      bowlingStyle,
+      bowlingStyle: role === 'Batsman' ? 'N/A' : bowlingStyle,
     });
 
     // Reset Form
@@ -146,10 +146,11 @@ export default function PlayerSelector({
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Bowling Style</label>
               <input
                 type="text"
-                value={bowlingStyle}
+                disabled={role === 'Batsman'}
+                value={role === 'Batsman' ? 'N/A' : bowlingStyle}
                 onChange={e => setBowlingStyle(e.target.value)}
-                placeholder="e.g. Right-arm Off break"
-                className="w-full px-3 py-2 bg-slate-950/80 border border-white/10 text-slate-100 rounded-lg text-sm placeholder-slate-500 focus:outline-hidden focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/40"
+                placeholder={role === 'Batsman' ? 'N/A (Batsman)' : 'e.g. Right-arm Off break'}
+                className="w-full px-3 py-2 bg-slate-950/80 border border-white/10 text-slate-100 rounded-lg text-sm placeholder-slate-500 focus:outline-hidden focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/40 disabled:opacity-50 disabled:bg-slate-950/40 disabled:cursor-not-allowed"
               />
             </div>
           </div>
